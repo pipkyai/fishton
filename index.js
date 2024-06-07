@@ -7,11 +7,10 @@ const bot = new TelegramApi(token, {polling: true})
 const webAppUrl = 'https://fishington.netlify.app/';
 
 
-// const sequelize = require('./db');
-// const UserModel = require('./models');
+const sequelize = require('./db');
+const UserModel = require('./models');
 
 var fish = 'Ничего не поймал';
-var prevEvent = '';
 
 const gameOptions = {
     reply_markup: JSON.stringify({
@@ -24,14 +23,14 @@ const gameOptions = {
 
 const start = async () => {
 
-    // try {
-    //     await sequelize.authenticate();
-    //     await sequelize.sync();
-    //     console.log('Успешно подключились к безе данных');
-    //
-    // }catch(e){
-    //     console.log('Нет подключения к базе данных')
-    // }
+    try {
+        await sequelize.authenticate();
+        await sequelize.sync();
+        console.log('Успешно подключились к безе данных');
+    
+    }catch(e){
+        console.log('Нет подключения к базе данных')
+    }
 
     await bot.setMyCommands([
         {command: '/start', description: 'Начальное приветствие'},
@@ -45,14 +44,14 @@ const start = async () => {
 
         try {
             if (text === '/start') {
-                // await UserModel.create({chatId});
-                await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/e80/caf/e80caf10-3990-4254-bda6-1f5c09851618/1.webp')
-                return bot.sendMessage(chatId, `Добро пожалывать на крипторыбалку ${msg.from.first_name}!`)
+                await UserModel.create({chatId});
+                bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/e80/caf/e80caf10-3990-4254-bda6-1f5c09851618/1.webp')
+                return bot.sendMessage(chatId, `Добро пожалывать на крипторыбалку !`)
             }
             if (text === '/info') {
-                // const user = await UserModel.findOne({chatId})
-                // return  bot.sendMessage(chatId, `Рыба порожденная блокчейном. Ты поймал ${user.fish} дурев рыбы`)
-                return  bot.sendMessage(chatId, `Рыба порожденная блокчейном.`)
+                const user = await UserModel.findOne({chatId})
+                return  bot.sendMessage(chatId, `Рыба порожденная блокчейном. Ты поймал ${user.coins} дурев рыбы`)
+                // return  bot.sendMessage(chatId, `Рыба порожденная блокчейном.`)
 
             }
             if (text === '/game') {
@@ -68,18 +67,18 @@ const start = async () => {
     bot.on(`callback_query`, async msg => {
         const data = msg.data;
         const chatId = msg.message.chat.id;
-        // await bot.sendMessage(chatId, fish)
+        await bot.sendMessage(chatId, fish)
         await bot.sendMessage(chatId, `Ты поймал рыбу смешарика весом ${Math.floor(10*Math.random())} килограммов`);
 
-        // fish = 'Ничего не поймал';
+        fish = 'Ничего не поймал';
 
 
-        // const user = await UserModel.findOne({chatId})
-        // await bot.sendMessage(chatId, `Ты поймал рыбу ${data}`)
-        // user.fish +=1;
+        const user = await UserModel.findOne({chatId})
+        await bot.sendMessage(chatId, `Ты поймал рыбу ${data}`)
+        user.fish +=1;
 
 
-        // await user.save();
+        await user.save();
     })
 }
 
